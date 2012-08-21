@@ -1,25 +1,29 @@
-WIDTH = 640
-HEIGHT = 480
+root = exports ? this
 
-FIELD_OF_VIEW = 75
-FRUSTUM_NEAR = 0.1
-FRUSTUM_FAR = 1000000
+parameters =
+# These parameters are read only in init.
+  WIDTH: 640
+  HEIGHT: 480
 
-CAMERA_DISTANCE = 1000
+  # This controls the level of detail, the roundness, of the cylinders
+  # dropped by the turtle.
+  SEGMENTS: 10
 
-TURTLE_START_POS = new THREE.Vector3(0, 0, 0)
-TURTLE_START_DIR = new THREE.Vector3(0, 1, 0)
-TURTLE_START_UP = new THREE.Vector3(0, 0, 1)
-TURTLE_START_COLOR = 0xFF0000
+  FIELD_OF_VIEW: 75
+  FRUSTUM_NEAR: 0.1
+  FRUSTUM_FAR: 1000000
+# These parameters are also read in run.
+  CAMERA_DISTANCE: 1000
 
-DIR_LIGHT_COLOR = 0xFFFFFF
-DIR_LIGHT_POS = new THREE.Vector3(1, 1, 1)
-DIR_LIGHT_TARGET = new THREE.Vector3(0, 0, 0)
-AMB_LIGHT_COLOR = 0x555555
+  TURTLE_START_POS: new THREE.Vector3(0, 0, 0)
+  TURTLE_START_DIR: new THREE.Vector3(0, 1, 0)
+  TURTLE_START_UP: new THREE.Vector3(0, 0, 1)
+  TURTLE_START_COLOR: 0xFF0000
 
-# This controls the level of detail, the roundness, of the cylinders
-# dropped by the turtle.
-SEGMENTS = 10
+  DIR_LIGHT_COLOR: 0xFFFFFF
+  DIR_LIGHT_POS: new THREE.Vector3(1, 1, 1)
+  DIR_LIGHT_TARGET: new THREE.Vector3(0, 0, 0)
+  AMB_LIGHT_COLOR: 0x555555
 
 
 deg2rad = (degrees) ->
@@ -34,20 +38,8 @@ getPerpVec = (vec) ->
   else
     new THREE.Vector3(0, 1, -(vec.y / vec.z))
 
-# We take the cylinder geometry, which is constantly dropped behind
-# by the turtle, and rearrange it a little. We move the pivot,
-# the origin of the geometries' vertices, so that it lies
-# in the bottom center of the cylinder and we rotate it so that
-# Y axis points in the Z axis (this means that now if we orient
-# the cylinder using lookAt, the axis of the cylinder will point
-# towards the target). PS: The transformations have to be multiplied
-# onto the resulting matrix in the opposite order to the one
-# in which we want to perform them.
-turtleGeometry = new THREE.CylinderGeometry(1, 1, 1, SEGMENTS)
-normalizationMatrix = new THREE.Matrix4()
-normalizationMatrix.rotateX(Math.PI / 2)
-normalizationMatrix.translate(new THREE.Vector3(0, -0.5, 0))
-turtleGeometry.applyMatrix(normalizationMatrix)
+# Accessed by both Turtle3D and init.
+turtleGeometry = undefined
 
 # Our turtle in space. Maintains its position in space, a unit
 # direction vector (where is the turtle pointing now), a unit up
@@ -159,10 +151,27 @@ class Turtle3D
       mesh.applyMatrix(turtleTransform)
       mesh
 
+# My "global" variables.
+codeMirror = undefined
+camera = undefined
+controls = undefined
+scene = new THREE.Scene()
 
-window.onload = ->
-
-  codeMirror = CodeMirror.fromTextArea $('#codeMirrorArea').get 0
+init = (parentElement) ->
+  # We take the cylinder geometry, which is constantly dropped behind
+  # by the turtle, and rearrange it a little. We move the pivot,
+  # the origin of the geometries' vertices, so that it lies
+  # in the bottom center of the cylinder and we rotate it so that
+  # Y axis points in the Z axis (this means that now if we orient
+  # the cylinder using lookAt, the axis of the cylinder will point
+  # towards the target). parameters.PS: The transformations have to be multiplied
+  # onto the resulting matrix in the opposite order to the one
+  # in which we want to perform them.
+  turtleGeometry = new THREE.CylinderGeometry(1, 1, 1, parameters.SEGMENTS)
+  normalizationMatrix = new THREE.Matrix4()
+  normalizationMatrix.rotateX(Math.PI / 2)
+  normalizationMatrix.translate(new THREE.Vector3(0, -0.5, 0))
+  turtleGeometry.applyMatrix(normalizationMatrix)
 
   try
     renderer = new THREE.WebGLRenderer()
@@ -170,22 +179,20 @@ window.onload = ->
     console.log "loading WebGLRenderer failed, trying CanvasRenderer"
     renderer = new THREE.CanvasRenderer()
 
-  renderer.setSize WIDTH, HEIGHT
-  document.body.appendChild renderer.domElement
+  renderer.setSize parameters.WIDTH, parameters.HEIGHT
+  parentElement.appendChild renderer.domElement
 
-  camera = new THREE.PerspectiveCamera(FIELD_OF_VIEW,
-                                       WIDTH / HEIGHT,
-                                       FRUSTUM_NEAR,
-                                       FRUSTUM_FAR)
-  camera.position.set(0, 0, CAMERA_DISTANCE)
+  camera = new THREE.PerspectiveCamera(parameters.FIELD_OF_VIEW,
+                                       parameters.WIDTH / parameters.HEIGHT,
+                                       parameters.FRUSTUM_NEAR,
+                                       parameters.FRUSTUM_FAR)
+  camera.position.set(0, 0, parameters.CAMERA_DISTANCE)
   # This doesn't matter, as after something is rendered, the camera is
   # controlled by the OrbitControls, whose 'center' we set to the
   # centroid of the rendered stuff.
   camera.lookAt(new THREE.Vector3(0, 0, 0))
 
   controls = new THREE.OrbitControls(camera, renderer.domElement)
-
-  scene = new THREE.Scene()
 
   animate = ->
     # This causes the browser to call our animate repeatedly in some
@@ -196,52 +203,59 @@ window.onload = ->
 
   animate()
 
-  $('#runButton').click ->
+  return renderer
 
-    material = new THREE.MeshLambertMaterial({ color: TURTLE_START_COLOR
-                                             , ambient: TURTLE_START_COLOR })
-    
-    myTurtle = new Turtle3D(TURTLE_START_POS,
-                            TURTLE_START_DIR,
-                            TURTLE_START_UP,
-                            material)
+run = (turtleCode) ->
+  material = new THREE.MeshLambertMaterial({ color: parameters.TURTLE_START_COLOR
+                                           , ambient: parameters.TURTLE_START_COLOR })
 
-    # Since my Turtle3D is a nice object with its own fields and I
-    # want to use its methods as global function in a global context,
-    # I export them like this.
-    window.go = -> myTurtle.go.apply myTurtle, arguments
-    window.yaw = -> myTurtle.yaw.apply myTurtle, arguments
-    window.pitch = -> myTurtle.pitch.apply myTurtle, arguments
-    window.roll = -> myTurtle.roll.apply myTurtle, arguments
-    window.penUp = -> myTurtle.penUp.apply myTurtle, arguments
-    window.penDown = -> myTurtle.penDown.apply myTurtle, arguments
-    window.color = -> myTurtle.setColor.apply myTurtle, arguments
-    window.width = -> myTurtle.setWidth.apply myTurtle, arguments
+  myTurtle = new Turtle3D(parameters.TURTLE_START_POS,
+                          parameters.TURTLE_START_DIR,
+                          parameters.TURTLE_START_UP,
+                          material)
 
-    eval codeMirror.getValue()
+  # Since my Turtle3D is a nice object with its own fields and I
+  # want to use its methods as global function in a global context,
+  # I export them like this.
+  window.go = -> myTurtle.go.apply myTurtle, arguments
+  window.yaw = -> myTurtle.yaw.apply myTurtle, arguments
+  window.pitch = -> myTurtle.pitch.apply myTurtle, arguments
+  window.roll = -> myTurtle.roll.apply myTurtle, arguments
+  window.penUp = -> myTurtle.penUp.apply myTurtle, arguments
+  window.penDown = -> myTurtle.penDown.apply myTurtle, arguments
+  window.color = -> myTurtle.setColor.apply myTurtle, arguments
+  window.width = -> myTurtle.setWidth.apply myTurtle, arguments
 
-    # We dump the old scene and populate a new one.
-    scene = new THREE.Scene()
+  eval turtleCode
 
-    meshes = myTurtle.retrieveMeshes()
-    for mesh in meshes
-      scene.add(mesh)
+  # We dump the old scene and populate a new one.
+  scene = new THREE.Scene()
 
-    centroid = new THREE.Vector3()
-    for mesh in meshes
-      centroid.addSelf(mesh.position)
-    centroid.divideScalar(meshes.length)
+  meshes = myTurtle.retrieveMeshes()
+  for mesh in meshes
+    scene.add(mesh)
 
-    # We center the camera around the centroid of the generated geometry.
-    camera.position = new THREE.Vector3(0, 0, CAMERA_DISTANCE).addSelf(centroid)
-    controls.center = centroid
+  centroid = new THREE.Vector3()
+  for mesh in meshes
+    centroid.addSelf(mesh.position)
+  centroid.divideScalar(meshes.length)
 
-    dirLight = new THREE.DirectionalLight(DIR_LIGHT_COLOR)
-    dirLight.position = DIR_LIGHT_POS
-    dirLight.target.position = DIR_LIGHT_TARGET
-    scene.add(dirLight)
+  # We center the camera around the centroid of the generated geometry.
+  camera.position = new THREE.Vector3(0, 0, parameters.CAMERA_DISTANCE).addSelf(centroid)
+  controls.center = centroid
 
-    ambLight = new THREE.AmbientLight(AMB_LIGHT_COLOR)
-    scene.add(ambLight)
+  dirLight = new THREE.DirectionalLight(parameters.DIR_LIGHT_COLOR)
+  dirLight.position = parameters.DIR_LIGHT_POS
+  dirLight.target.position = parameters.DIR_LIGHT_TARGET
+  scene.add(dirLight)
 
-    $('#numMeshes').html "#{meshes.length} meshes in the scene"
+  ambLight = new THREE.AmbientLight(parameters.AMB_LIGHT_COLOR)
+  scene.add(ambLight)
+
+  return scene
+
+root.turtle3d =
+  Turtle3D: Turtle3D
+  init: init
+  run: run
+  parameters: parameters
