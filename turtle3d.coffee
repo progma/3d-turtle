@@ -209,9 +209,9 @@ run = (turtleCode) ->
   material = new THREE.MeshLambertMaterial({ color: parameters.TURTLE_START_COLOR
                                            , ambient: parameters.TURTLE_START_COLOR })
 
-  myTurtle = new Turtle3D(parameters.TURTLE_START_POS,
-                          parameters.TURTLE_START_DIR,
-                          parameters.TURTLE_START_UP,
+  myTurtle = new Turtle3D(parameters.TURTLE_START_POS.clone(),
+                          parameters.TURTLE_START_DIR.clone(),
+                          parameters.TURTLE_START_UP.clone(),
                           material)
 
   # Since my Turtle3D is a nice object with its own fields and I
@@ -248,8 +248,8 @@ run = (turtleCode) ->
   controls.center = centroid
 
   dirLight = new THREE.DirectionalLight(parameters.DIR_LIGHT_COLOR)
-  dirLight.position = parameters.DIR_LIGHT_POS
-  dirLight.target.position = parameters.DIR_LIGHT_TARGET
+  dirLight.position = parameters.DIR_LIGHT_POS.clone()
+  dirLight.target.position = parameters.DIR_LIGHT_TARGET.clone()
   scene.add(dirLight)
 
   ambLight = new THREE.AmbientLight(parameters.AMB_LIGHT_COLOR)
