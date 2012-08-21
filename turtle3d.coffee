@@ -217,14 +217,17 @@ run = (turtleCode) ->
   # Since my Turtle3D is a nice object with its own fields and I
   # want to use its methods as global function in a global context,
   # I export them like this.
-  window.go = -> myTurtle.go.apply myTurtle, arguments
-  window.yaw = -> myTurtle.yaw.apply myTurtle, arguments
-  window.pitch = -> myTurtle.pitch.apply myTurtle, arguments
-  window.roll = -> myTurtle.roll.apply myTurtle, arguments
-  window.penUp = -> myTurtle.penUp.apply myTurtle, arguments
-  window.penDown = -> myTurtle.penDown.apply myTurtle, arguments
-  window.color = -> myTurtle.setColor.apply myTurtle, arguments
-  window.width = -> myTurtle.setWidth.apply myTurtle, arguments
+  window.go = (distance) -> myTurtle.go(distance)
+  window.left = (angle) -> myTurtle.yaw(angle)
+  window.right = (angle) -> myTurtle.yaw(-angle)
+  window.up = (angle) -> myTurtle.pitch(angle)
+  window.down = (angle) -> myTurtle.pitch(-angle)
+  window.rollLeft = (angle) -> myTurtle.roll(-angle)
+  window.rollRight = (angle) -> myTurtle.roll(angle)
+  window.penUp = -> myTurtle.penUp()
+  window.penDown = -> myTurtle.penDown()
+  window.color = (hex) -> myTurtle.setColor(hex)
+  window.width = (width) -> myTurtle.setWidth(width)
 
   eval turtleCode
 
