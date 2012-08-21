@@ -179,7 +179,7 @@ init = (parentElement) ->
     renderer = new THREE.CanvasRenderer()
 
   renderer.setSize parameters.WIDTH, parameters.HEIGHT
-  parentElement.appendChild renderer.domElement
+  $(parentElement).append renderer.domElement
 
   camera = new THREE.PerspectiveCamera(parameters.FIELD_OF_VIEW,
                                        parameters.WIDTH / parameters.HEIGHT,
@@ -204,7 +204,7 @@ init = (parentElement) ->
 
   animate()
 
-  return renderer
+  return renderer.domElement
 
 
 run = (turtleCode) ->
