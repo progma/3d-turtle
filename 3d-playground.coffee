@@ -110,7 +110,12 @@ window.onload = ->
 
   codeMirror = CodeMirror.fromTextArea $('#codeMirrorArea').get 0
 
-  renderer = new THREE.WebGLRenderer()
+  try
+    renderer = new THREE.WebGLRenderer()
+  catch e
+    console.log "loading WebGLRenderer failed, trying CanvasRenderer"
+    renderer = new THREE.CanvasRenderer()
+
   renderer.setSize WIDTH, HEIGHT
   document.body.appendChild renderer.domElement
 
