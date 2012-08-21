@@ -38,8 +38,12 @@ getPerpVec = (vec) ->
   else
     new THREE.Vector3(0, 1, -(vec.y / vec.z))
 
-# Accessed by both Turtle3D and init.
+# My "global" variables.
 turtleGeometry = undefined
+camera = undefined
+controls = undefined
+scene = undefined
+
 
 # Our turtle in space. Maintains its position in space, a unit
 # direction vector (where is the turtle pointing now), a unit up
@@ -151,11 +155,6 @@ class Turtle3D
       mesh.applyMatrix(turtleTransform)
       mesh
 
-# My "global" variables.
-codeMirror = undefined
-camera = undefined
-controls = undefined
-scene = new THREE.Scene()
 
 init = (parentElement) ->
   # We take the cylinder geometry, which is constantly dropped behind
@@ -194,6 +193,8 @@ init = (parentElement) ->
 
   controls = new THREE.OrbitControls(camera, renderer.domElement)
 
+  scene = new THREE.Scene()
+
   animate = ->
     # This causes the browser to call our animate repeatedly in some
     # way which is suitable for graphics rendering.
@@ -204,6 +205,7 @@ init = (parentElement) ->
   animate()
 
   return renderer
+
 
 run = (turtleCode) ->
   material = new THREE.MeshLambertMaterial({ color: parameters.TURTLE_START_COLOR
