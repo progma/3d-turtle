@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>3D želva</title>
+    <title>3D WebGL turtle</title>
     <meta charset="UTF-8"/>
     <script src="jquery-1.8.0.js"></script>
     <script src="CodeMirror-2.32/lib/codemirror.js"></script>
@@ -10,8 +10,19 @@
     <script src="three.min.js"></script>
     <script src="3d-playground.js"></script>
   </head>
+
   <body>
-    <textarea id="codeMirrorArea"></textarea>
+    <textarea id="codeMirrorArea">for (var i = 0; i < 50; i++)
+{
+  color(0x66AA22);
+  go(50);
+  pitch(20);
+  roll(10);
+}
+
+// try also:
+//  yaw(30)
+//  penUp() / penDown()</textarea>
     <input id="runButton" type="button" value="Run!"/>
     <div id="numMeshes"/>
   </body>
