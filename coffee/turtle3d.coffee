@@ -2,7 +2,7 @@ root = exports ? this
 
 parameters =
 # These parameters are read only in init.
-  WIDTH: 640
+  WIDTH: 380
   HEIGHT: 480
 
   # This controls the level of detail, the roundness, of the cylinders
@@ -13,12 +13,13 @@ parameters =
   FRUSTUM_NEAR: 0.1
   FRUSTUM_FAR: 1000000
 # These parameters are also read in run.
-  CAMERA_DISTANCE: 1000
+  CAMERA_DISTANCE: 400
 
   TURTLE_START_POS: new THREE.Vector3(0, 0, 0)
   TURTLE_START_DIR: new THREE.Vector3(0, 1, 0)
   TURTLE_START_UP: new THREE.Vector3(0, 0, 1)
   TURTLE_START_COLOR: 0xFF0000
+  TURTLE_START_WIDTH: 5
 
   DIR_LIGHT_COLOR: 0xFFFFFF
   DIR_LIGHT_POS: new THREE.Vector3(1, 1, 1)
@@ -52,7 +53,7 @@ scene = undefined
 # current droppings, the trail of droppings the turtle has painted
 # and whether it is drawing more now. See the constructor for details.
 class Turtle3D
-  constructor: (@position, @direction, @up, @material, @width = 30) ->
+  constructor: (@position, @direction, @up, @material, @width) ->
     @direction.normalize()
     @up.normalize()
     @droppings = []
@@ -156,7 +157,7 @@ class Turtle3D
       mesh
 
 
-init = (parentElement) ->
+init = (canvas) ->
   # We take the cylinder geometry, which is constantly dropped behind
   # by the turtle, and rearrange it a little. We move the pivot,
   # the origin of the geometries' vertices, so that it lies
@@ -173,13 +174,13 @@ init = (parentElement) ->
   turtleGeometry.applyMatrix(normalizationMatrix)
 
   try
-    renderer = new THREE.WebGLRenderer()
+    renderer = new THREE.WebGLRenderer(canvas: canvas)
   catch e
     console.log "loading WebGLRenderer failed, trying CanvasRenderer"
-    renderer = new THREE.CanvasRenderer()
+    renderer = new THREE.CanvasRenderer(canvas: canvas)
 
   renderer.setSize parameters.WIDTH, parameters.HEIGHT
-  $(parentElement).append renderer.domElement
+  #$(parentElement).append renderer.domElement
 
   camera = new THREE.PerspectiveCamera(parameters.FIELD_OF_VIEW,
                                        parameters.WIDTH / parameters.HEIGHT,
@@ -214,7 +215,8 @@ run = (turtleCode) ->
   myTurtle = new Turtle3D(parameters.TURTLE_START_POS.clone(),
                           parameters.TURTLE_START_DIR.clone(),
                           parameters.TURTLE_START_UP.clone(),
-                          material)
+                          material,
+                          parameters.TURTLE_START_WIDTH)
 
   # Since my Turtle3D is a nice object with its own fields and I
   # want to use its methods as global function in a global context,
