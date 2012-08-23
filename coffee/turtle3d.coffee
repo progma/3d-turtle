@@ -258,6 +258,7 @@ run = (turtleCode) ->
   window.silver = 0xC0C0C0
 
   window.brown = 0x552222
+  window.orange = 0xCC3232
 
   eval turtleCode
 
