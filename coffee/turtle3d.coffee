@@ -24,7 +24,10 @@ parameters =
   DIR_LIGHT_COLOR: 0xFFFFFF
   DIR_LIGHT_POS: new THREE.Vector3(1, 1, 1)
   DIR_LIGHT_TARGET: new THREE.Vector3(0, 0, 0)
+
   AMB_LIGHT_COLOR: 0x555555
+
+  BACKGROUND_COLOR: 0x00FFFF
 
 
 deg2rad = (degrees) ->
@@ -173,11 +176,15 @@ init = (canvas) ->
   normalizationMatrix.translate(new THREE.Vector3(0, -0.5, 0))
   turtleGeometry.applyMatrix(normalizationMatrix)
 
+  rendererParams =
+    canvas: canvas
+    clearColor: parameters.BACKGROUND_COLOR
+    clearAlpha: 1
   try
-    renderer = new THREE.WebGLRenderer(canvas: canvas)
+    renderer = new THREE.WebGLRenderer(rendererParams)
   catch e
     console.log "loading WebGLRenderer failed, trying CanvasRenderer"
-    renderer = new THREE.CanvasRenderer(canvas: canvas)
+    renderer = new THREE.CanvasRenderer(rendererParams)
 
   renderer.setSize parameters.WIDTH, parameters.HEIGHT
   #$(parentElement).append renderer.domElement
@@ -233,6 +240,25 @@ run = (turtleCode) ->
   window.color = (hex) -> myTurtle.setColor(hex)
   window.width = (width) -> myTurtle.setWidth(width)
 
+  window.white = 0xFFFFFF
+  window.yellow = 0xFFFF00
+  window.fuchsia = 0xFF00FF
+  window.aqua = 0x00FFFF
+  window.red = 0xFF0000
+  window.lime = 0x00FF00
+  window.blue = 0x0000FF
+  window.black = 0x000000
+  window.green = 0x008000
+  window.maroon = 0x800000
+  window.olive = 0x808000
+  window.purple = 0x800080
+  window.gray = 0x808080
+  window.navy = 0x000080
+  window.teal = 0x008080
+  window.silver = 0xC0C0C0
+
+  window.brown = 0x552222
+
   eval turtleCode
 
   # We dump the old scene and populate a new one.
@@ -241,6 +267,19 @@ run = (turtleCode) ->
   meshes = myTurtle.retrieveMeshes()
   for mesh in meshes
     scene.add(mesh)
+
+  # simple helper
+  helper = new THREE.AxisHelper()
+  newZ = myTurtle.direction
+  newY = myTurtle.up
+  newX = new THREE.Vector3().cross(newZ, newY)
+  rotationMatrix = new THREE.Matrix4(newX.x, newY.x, newZ.x, 0,
+                                     newX.y, newY.y, newZ.y, 0,
+                                     newX.z, newY.z, newZ.z, 0,
+                                          0,      0,      0, 1)
+  helper.applyMatrix(rotationMatrix)
+  helper.position = myTurtle.position
+  scene.add(helper)
 
   centroid = new THREE.Vector3()
   for mesh in meshes
